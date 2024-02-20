@@ -200,7 +200,6 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
         );
         // @ts-ignore
 
-        
         return tx;
     }
     async function claimAndUnstakeInstructions({
@@ -379,6 +378,33 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
             stakePoolProgram.programId
         )[0];
         return stakeEntry;
+    };
+
+    const readStakeEntryAddress = async ({
+        user,
+        nft,
+        stakePool = STAKE_POOL,
+        stakePoolProgram = STAKE_POOL_PROGRAM,
+    }: {
+        user: PublicKey;
+        nft: {
+            // Nft to unstake.
+            mintAddress: PublicKey;
+            metadataAddress: PublicKey;
+        };
+        stakePool?: PublicKey;
+        stakePoolProgram?: Program<CardinalStakePool>;
+    }) => {
+        const stakeEntry = await stakeEntryAddress({
+            user,
+            nft,
+            stakePool,
+            stakePoolProgram,
+        });
+        const stakeEntryAccount = await stakePoolProgram.account.stakeEntry.fetch(stakeEntry);
+        stakeEntryAccount.lastStaker
+        stakeEntryAccount.originalMint
+        return stakeEntryAccount;
     };
 
     const fetchRewardEntry = async ({
@@ -847,6 +873,7 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
             [Buffer.from('sba-scoped-user'), fromUser.toBuffer()],
             soulboundProgram.programId
         );
+
         const fromScopedSbaUserAuthority = PublicKey.findProgramAddressSync(
             [
                 Buffer.from('sba-scoped-user-nft-program'),
@@ -930,6 +957,10 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
                 isSigner: k.pubkey.equals(fromScopedSbaUserAuthority) ? false : k.isSigner,
             };
         });
+        const claimIxs = await claimRewardInstruction({
+            user: fromUser,
+            nft: fromNft,
+        });
 
         const tx = await soulboundProgram.methods
             .executeTxScopedUserNftProgram(data)
@@ -944,7 +975,8 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
                 program: rewardDistributorProgram.programId,
             })
             .remainingAccounts(keys)
-            .transaction();
+            .preInstructions(claimIxs)
+            .instruction();
 
         // @ts-ignore
         return tx;
@@ -981,6 +1013,7 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
         },
         rewardEntryAddress,
         stakeEntryAddress,
+        readStakeEntryAddress,
         goldPointsAddress,
     };
 }
