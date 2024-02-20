@@ -13,6 +13,7 @@
         "composite": true,
         "isolatedModules": true,
         "noEmitOnError": true,
-        "stripInternal": true
+        "stripInternal": true,
+        "noImplicitAny": false
     }
 }

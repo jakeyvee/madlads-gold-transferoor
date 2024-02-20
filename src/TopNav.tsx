@@ -1,6 +1,7 @@
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import image from '../public/images/metacamp-logo.png';
 import React, { useState } from 'react';
+
+const image = require('../public/images/metacamp-logo.png');
 
 const TopNav = () => {
     const [isNavOpen, setIsNavOpen] = useState(false);

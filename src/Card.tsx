@@ -2,7 +2,6 @@ import { AnchorWallet } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 import React, { useState } from 'react';
 import UnstakeNFT from './UnstakeNFT';
-import StakeNFT from './StakeNFT';
 import MovePoints from './MovePoints';
 
 export interface NFTInterface {
