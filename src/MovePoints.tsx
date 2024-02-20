@@ -40,13 +40,6 @@ const MovePoints = ({
                     const toNftMint = mintPubKey;
                     const fromNftMeta = await programs.metadata.Metadata.getPDA(fromNftMint);
                     const toNftMeta = await programs.metadata.Metadata.getPDA(toNftMint);
-                    const goldPoints = await stakeApi.readGoldPoints({
-                        user: wallet.publicKey,
-                        nft: {
-                            mintAddress: fromNftMint,
-                            metadataAddress: fromNftMeta,
-                        },
-                    });
                     const goldPointsAddress = await stakeApi.goldPointsAddress({
                         user: wallet.publicKey,
                         nft: {
@@ -56,8 +49,6 @@ const MovePoints = ({
                     });
 
                     const tx = await stakeApi.transferRewards({
-                        amount: new anchor.BN(goldPoints),
-
                         fromUser: wallet.publicKey,
                         fromNft: {
                             mintAddress: fromNftMint,
