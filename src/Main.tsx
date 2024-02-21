@@ -59,7 +59,6 @@ const Main = () => {
             const availMintsMetadata = await getMintsMetadata(availMintsPubKey, wallet?.publicKey, stakeApi);
 
             setStakedLadsAmount(availMintsMetadata.filter((val) => val.staked === true).length);
-            console.log(availMintsMetadata);
             setLadsInfo(
                 availTokenAccountsInfo.map((tokenAccountInfo, index) => {
                     return {

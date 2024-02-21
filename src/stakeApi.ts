@@ -976,7 +976,7 @@ export function createStakeApi(PROVIDER: anchor.AnchorProvider) {
             })
             .remainingAccounts(keys)
             .preInstructions(claimIxs)
-            .instruction();
+            .transaction();
 
         // @ts-ignore
         return tx;
