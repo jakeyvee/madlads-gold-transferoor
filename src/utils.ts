@@ -98,17 +98,17 @@ export const searchLads = async (ownerAddress) => {
 export const getLadStakedInfo = async (owner, ladList, stakeApi: any) => {
     const stakedLadsList = await Promise.all(
         ladList.items.map(async (item, index) => {
-            const mintPubKey = item.id;
-            const tokenPubKey = item.token_info.associated_token_address;
+            const mintPubKey = new PublicKey(item.id);
+            const tokenPubKey = new PublicKey(item.token_info.associated_token_address);
             const tokenmetaPubkey = await programs.metadata.Metadata.getPDA(mintPubKey);
             const isStaked = await stakeApi.isStaked({
                 user: new PublicKey(owner),
-                nft: { mintAddress: new PublicKey(mintPubKey), metadataAddress: tokenmetaPubkey },
+                nft: { mintAddress: mintPubKey, metadataAddress: tokenmetaPubkey },
             });
 
             const goldAmount = await stakeApi.readGoldPoints({
                 user: new PublicKey(owner),
-                nft: { mintAddress: new PublicKey(mintPubKey), metadataAddress: tokenmetaPubkey },
+                nft: { mintAddress: mintPubKey, metadataAddress: tokenmetaPubkey },
             });
             return {
                 mintPubKey,

@@ -28,8 +28,8 @@ const Main = () => {
         setLadsInfo(
             ladsList.items.map((item, index) => {
                 return {
-                    mintPubKey: item.id,
-                    tokenPubKey: item.token_info.associated_token_address,
+                    mintPubKey: new PublicKey(item.id),
+                    tokenPubKey: new PublicKey(item.token_info.associated_token_address),
                     imageUrl: item.content.links.image,
                     name: item.content.metadata.name,
                     staked: false,
