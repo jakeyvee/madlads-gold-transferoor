@@ -3,11 +3,9 @@ import { useAnchorWallet } from '@solana/wallet-adapter-react';
 import React, { useEffect, useState } from 'react';
 import Card, { NFTInterface } from './Card';
 import WalletOverview from './WalletOverview';
-import { TOKEN_PROGRAM_ID } from '@coral-xyz/anchor/dist/cjs/utils/token';
 
-import { PublicKey, TokenAccountsFilter } from '@solana/web3.js';
-import { conn, filterAvailAccount, getMintsMetadata } from './utils';
-import { ladMintList } from './mints';
+import { PublicKey } from '@solana/web3.js';
+import { conn, getLadStakedInfo, searchLads } from './utils';
 import { createStakeApi } from './stakeApi';
 
 const Main = () => {
@@ -22,56 +20,27 @@ const Main = () => {
 
     const stakeApi = createStakeApi(provider);
 
-    const tokenAccountsFilter: TokenAccountsFilter = {
-        programId: new PublicKey(TOKEN_PROGRAM_ID),
-    };
-
     const setWalletStates = async (walletPubKey: PublicKey) => {
-        const tokenAccountsInfo = await conn.getParsedTokenAccountsByOwner(
-            new PublicKey(walletPubKey),
-            tokenAccountsFilter
-        );
-
-        const ladTokenAccountsInfo = tokenAccountsInfo.value.filter((val, idx) =>
-            ladMintList.includes(val.account.data.parsed.info.mint)
-        );
-
-        const availTokenAccountsInfo = await filterAvailAccount(ladTokenAccountsInfo);
-        setLadsAmount(availTokenAccountsInfo.length);
-
-        const availMintsPubKey = availTokenAccountsInfo.map(
-            (tokenAccountInfo) => new PublicKey(tokenAccountInfo.account.data.parsed.info.mint)
-        );
+        const ladsList = await searchLads(walletPubKey.toBase58());
+        setLadsAmount(ladsList.total);
+        console.log(ladsList)
 
         setLadsInfo(
-            availTokenAccountsInfo.map((tokenAccountInfo, index) => {
+            ladsList.items.map((item, index) => {
                 return {
-                    mintPubKey: availMintsPubKey[index],
-                    tokenPubKey: tokenAccountInfo.pubkey,
-                    imageUrl: 'loading',
-                    name: 'loading',
+                    mintPubKey: item.id,
+                    tokenPubKey: item.token_info.associated_token_address,
+                    imageUrl: item.content.links.image,
+                    name: item.content.metadata.name,
                     staked: false,
                     goldAmount: 0,
                 };
             })
         );
-        if (wallet) {
-            const availMintsMetadata = await getMintsMetadata(availMintsPubKey, wallet?.publicKey, stakeApi);
 
-            setStakedLadsAmount(availMintsMetadata.filter((val) => val.staked === true).length);
-            setLadsInfo(
-                availTokenAccountsInfo.map((tokenAccountInfo, index) => {
-                    return {
-                        mintPubKey: availMintsPubKey[index],
-                        tokenPubKey: tokenAccountInfo.pubkey,
-                        imageUrl: availMintsMetadata[index].imageUrl,
-                        name: availMintsMetadata[index].name,
-                        staked: availMintsMetadata[index].staked,
-                        goldAmount: availMintsMetadata[index].goldAmount,
-                    };
-                })
-            );
-        }
+        const stakedLadsInfo = await getLadStakedInfo(walletPubKey.toBase58(), ladsList, stakeApi);
+        setStakedLadsAmount(stakedLadsInfo.filter((val) => val.staked === true).length);
+        setLadsInfo(stakedLadsInfo);
     };
 
     useEffect(() => {
