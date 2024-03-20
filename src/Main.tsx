@@ -5,8 +5,9 @@ import Card, { NFTInterface } from './Card';
 import WalletOverview from './WalletOverview';
 
 import { PublicKey } from '@solana/web3.js';
-import { conn, getLadStakedInfo, searchLads } from './utils';
+import { getLadStakedInfo, searchLads } from './utils';
 import { createStakeApi } from './stakeApi';
+import { useRpcStore } from './store';
 
 const Main = () => {
     const wallet = useAnchorWallet();
@@ -14,19 +15,19 @@ const Main = () => {
     const [stakedLadsAmount, setStakedLadsAmount] = useState<number>(0);
     const [ladsInfo, setLadsInfo] = useState<NFTInterface[]>();
     const [pointsFromLadMint, setPointsFromLadMint] = useState<PublicKey>();
-    const provider = new anchor.AnchorProvider(conn, wallet as any, {
-        commitment: 'confirmed',
-    });
-
-    const stakeApi = createStakeApi(provider);
 
     const setWalletStates = async (walletPubKey: PublicKey) => {
+        const provider = new anchor.AnchorProvider(useRpcStore.getState().rpcConnection, wallet as any, {
+            commitment: 'confirmed',
+        });
+
+        const stakeApi = createStakeApi(provider);
         const ladsList = await searchLads(walletPubKey.toBase58());
         if (ladsList) {
             setLadsAmount(ladsList.total);
 
             setLadsInfo(
-                ladsList.items.map((item, index) => {
+                ladsList.items.map((item) => {
                     return {
                         mintPubKey: new PublicKey(item.id),
                         tokenPubKey: new PublicKey(item.token_info.associated_token_address),
@@ -43,6 +44,14 @@ const Main = () => {
             setLadsInfo(stakedLadsInfo);
         }
     };
+
+    useEffect(
+        () =>
+            useRpcStore.subscribe(() => {
+                if (wallet) setWalletStates(wallet.publicKey);
+            }),
+        [wallet]
+    );
 
     useEffect(() => {
         (async () => {
@@ -72,7 +81,6 @@ const Main = () => {
                                         pointsFromLadMint={pointsFromLadMint}
                                         setPointsFromLadMint={setPointsFromLadMint}
                                         setOverallStates={setWalletStates}
-                                        stakeApi={stakeApi}
                                         key={index}
                                     />
                                 ))}

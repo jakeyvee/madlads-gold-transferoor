@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { NFTInterface } from './Card';
 import { AnchorWallet, useWallet } from '@solana/wallet-adapter-react';
-import { conn } from './utils';
 import { programs } from '@metaplex/js';
 import { PublicKey } from '@solana/web3.js';
+import { useRpcStore } from './store';
 
 interface unstakeLadInterface {
     nft: NFTInterface;
@@ -19,7 +19,7 @@ const UnstakeNFT = ({ nft, wallet, setOverallStates, stakeApi }: unstakeLadInter
     const [wsSubscriptionId, setWsSubscribtionId] = useState<number>();
 
     const removeListener = async () => {
-        if (wsSubscriptionId) await conn.removeAccountChangeListener(wsSubscriptionId);
+        if (wsSubscriptionId) await useRpcStore.getState().rpcConnection.removeAccountChangeListener(wsSubscriptionId);
     };
     const onClickStake = async () => {
         if (wallet && mintPubKey) {
@@ -50,11 +50,11 @@ const UnstakeNFT = ({ nft, wallet, setOverallStates, stakeApi }: unstakeLadInter
                           },
                       });
 
-                const txSig = await sendTransaction(tx, conn);
+                const txSig = await sendTransaction(tx, useRpcStore.getState().rpcConnection);
 
                 console.log('Submitted tx:', txSig);
 
-                const wsSubscriptionId = conn.onAccountChange(
+                const wsSubscriptionId = useRpcStore.getState().rpcConnection.onAccountChange(
                     stakeEntry,
                     async () => {
                         await removeListener();

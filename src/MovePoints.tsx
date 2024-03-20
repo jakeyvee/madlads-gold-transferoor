@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import * as anchor from '@coral-xyz/anchor';
 import { NFTInterface } from './Card';
 import { AnchorWallet, useWallet } from '@solana/wallet-adapter-react';
-import { conn } from './utils';
 import { programs } from '@metaplex/js';
 import { PublicKey } from '@solana/web3.js';
+import { useRpcStore } from './store';
 
 interface unstakeLadInterface {
     nft: NFTInterface;
@@ -29,7 +28,7 @@ const MovePoints = ({
     const [wsSubscriptionId, setWsSubscribtionId] = useState<number>();
 
     const removeListener = async () => {
-        if (wsSubscriptionId) await conn.removeAccountChangeListener(wsSubscriptionId);
+        if (wsSubscriptionId) await useRpcStore.getState().rpcConnection.removeAccountChangeListener(wsSubscriptionId);
     };
     const onClickMove = async () => {
         if (wallet && mintPubKey) {
@@ -60,11 +59,11 @@ const MovePoints = ({
                         },
                     });
 
-                    const txSig = await sendTransaction(tx, conn);
+                    const txSig = await sendTransaction(tx, useRpcStore.getState().rpcConnection);
 
                     console.log('Submitted tx:', txSig);
 
-                    const wsSubscriptionId = conn.onAccountChange(
+                    const wsSubscriptionId = useRpcStore.getState().rpcConnection.onAccountChange(
                         goldPointsAddress,
                         async () => {
                             await removeListener();

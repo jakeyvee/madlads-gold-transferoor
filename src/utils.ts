@@ -1,9 +1,10 @@
-import { AccountInfo, Connection, ParsedAccountData, PublicKey, clusterApiUrl } from '@solana/web3.js';
+import { AccountInfo, ParsedAccountData, PublicKey, clusterApiUrl } from '@solana/web3.js';
 import { programs } from '@metaplex/js';
+import { useRpcStore } from './store';
 
-export const conn: Connection = new Connection(
-    process.env.REACT_APP_RPC_URL ? process.env.REACT_APP_RPC_URL : clusterApiUrl('mainnet-beta')
-);
+export const defaultEnvRpcUrl = process.env.REACT_APP_RPC_URL
+    ? process.env.REACT_APP_RPC_URL
+    : clusterApiUrl('mainnet-beta');
 
 interface MetadataInterface {
     imageUrl: string;
@@ -19,7 +20,9 @@ export async function filterAvailAccount(
     }[]
 ) {
     const responses = await Promise.all(
-        accountInfoList.map((row) => conn.getTokenAccountBalance(row.pubkey, 'confirmed'))
+        accountInfoList.map((row) =>
+            useRpcStore.getState().rpcConnection.getTokenAccountBalance(row.pubkey, 'confirmed')
+        )
     );
     return accountInfoList.filter((_, i) => responses[i].value.uiAmount === 1 && responses[i].value.decimals === 0);
 }
@@ -45,7 +48,7 @@ async function getMetadataImgUrl(url: string): Promise<string> {
 async function getMintMetadata(mintPubkey: PublicKey, owner: PublicKey, stakeApi: any) {
     try {
         const tokenmetaPubkey = await programs.metadata.Metadata.getPDA(mintPubkey);
-        const tokenmeta = await programs.metadata.Metadata.load(conn, tokenmetaPubkey);
+        const tokenmeta = await programs.metadata.Metadata.load(useRpcStore.getState().rpcConnection, tokenmetaPubkey);
         const resp: string = await getMetadataImgUrl(tokenmeta.data.data.uri);
         const isStaked = await stakeApi.isStaked({
             user: owner,

@@ -3,6 +3,9 @@ import { PublicKey } from '@solana/web3.js';
 import React, { useState } from 'react';
 import UnstakeNFT from './UnstakeNFT';
 import MovePoints from './MovePoints';
+import * as anchor from '@coral-xyz/anchor';
+import { useRpcStore } from './store';
+import { createStakeApi } from './stakeApi';
 
 export interface NFTInterface {
     mintPubKey: PublicKey;
@@ -19,19 +22,23 @@ interface cardNFTInterface {
     pointsFromLadMint: PublicKey | undefined;
     setPointsFromLadMint: React.Dispatch<React.SetStateAction<PublicKey | undefined>>;
     setOverallStates: (walletPubKey: PublicKey) => Promise<void>;
-    stakeApi: any;
 }
 
 const Card = ({
     nft,
     wallet,
     setOverallStates,
-    stakeApi,
     pointsFromLadMint,
     setPointsFromLadMint,
 }: cardNFTInterface) => {
     const { imageUrl, name, staked, goldAmount } = nft;
     const [imgLoading, setImgLoading] = useState<boolean>(true);
+
+    const provider = new anchor.AnchorProvider(useRpcStore.getState().rpcConnection, wallet as any, {
+        commitment: 'confirmed',
+    });
+
+    const stakeApi = createStakeApi(provider);
 
     return (
         <div className="shadow-xl bg-slate-800 rounded-lg col-span-12 lg:col-span-3 flex flex-col">
