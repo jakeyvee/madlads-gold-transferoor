@@ -22,25 +22,26 @@ const Main = () => {
 
     const setWalletStates = async (walletPubKey: PublicKey) => {
         const ladsList = await searchLads(walletPubKey.toBase58());
-        setLadsAmount(ladsList.total);
-        console.log(ladsList)
+        if (ladsList) {
+            setLadsAmount(ladsList.total);
 
-        setLadsInfo(
-            ladsList.items.map((item, index) => {
-                return {
-                    mintPubKey: new PublicKey(item.id),
-                    tokenPubKey: new PublicKey(item.token_info.associated_token_address),
-                    imageUrl: item.content.links.image,
-                    name: item.content.metadata.name,
-                    staked: false,
-                    goldAmount: 0,
-                };
-            })
-        );
+            setLadsInfo(
+                ladsList.items.map((item, index) => {
+                    return {
+                        mintPubKey: new PublicKey(item.id),
+                        tokenPubKey: new PublicKey(item.token_info.associated_token_address),
+                        imageUrl: item.content.links.image,
+                        name: item.content.metadata.name,
+                        staked: false,
+                        goldAmount: 0,
+                    };
+                })
+            );
 
-        const stakedLadsInfo = await getLadStakedInfo(walletPubKey.toBase58(), ladsList, stakeApi);
-        setStakedLadsAmount(stakedLadsInfo.filter((val) => val.staked === true).length);
-        setLadsInfo(stakedLadsInfo);
+            const stakedLadsInfo = await getLadStakedInfo(walletPubKey.toBase58(), ladsList, stakeApi);
+            setStakedLadsAmount(stakedLadsInfo.filter((val) => val.staked === true).length);
+            setLadsInfo(stakedLadsInfo);
+        }
     };
 
     useEffect(() => {
